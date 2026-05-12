@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🐱 TLTI 推理人格测试 · 猫咪版</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 30%, #ede7f6 60%, #e8eaf6 100%);
+    background-attachment: fixed;
+}
+
+/* Pixel border effect */
+.pixel-border {
+    border: 3px solid #ce93d8;
+    border-radius: 16px;
+    box-shadow:
+        3px 3px 0 #ab47bc,
+        -3px -3px 0 #f8bbd0,
+        inset 2px 2px 0 rgba(255,255,255,0.5);
+}
+
+.container { max-width: 680px; margin: 0 auto; padding: 16px; }
+
+/* Splash */
+#splash {
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; text-align: center; padding: 40px 20px;
+    justify-content: center;
+}
+.cat-row { font-size: 3.2rem; letter-spacing: 6px; margin-bottom: 6px; }
+#splash h1 {
+    font-size: clamp(2.6rem, 7vw, 3.8rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #e91e63, #9c27b0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+}
+#splash .sub {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    color: #7b5ea7;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+}
+#splash .desc {
+    color: #9575cd;
+    font-size: 0.92rem;
+    max-width: 440px;
+    line-height: 1.9;
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.5);
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 2px solid rgba(206,147,216,0.3);
+}
+#splash .badge {
+    display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 28px;
+}
+#splash .badge span {
+    background: rgba(156,39,176,0.08);
+    border: 2px solid rgba(156,39,176,0.15);
+    color: #7b5ea7;
+    padding: 5px 16px; border-radius: 30px; font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.btn {
+    background: linear-gradient(135deg, #e91e63, #9c27b0);
+    color: #fff; border: none;
+    padding: 14px 52px; font-size: 1.05rem;
+    border-radius: 30px; cursor: pointer;
+    font-family: inherit; font-weight: 700;
+    letter-spacing: 0.06em;
+    box-shadow: 0 4px 15px rgba(156,39,176,0.25);
+    transition: all 0.3s;
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(156,39,176,0.35); }
+.btn:active { transform: translateY(0); }
+.btn-sm { padding: 10px 28px; font-size: 0.9rem; }
+
+/* Question */
+.q-screen { display: none; }
+.q-screen.active { display: block; }
+
+.progress {
+    display: flex; align-items: center; gap: 10px;
+    margin: 16px 0 16px;
+}
+.progress-bar {
+    flex: 1; height: 8px;
+    background: rgba(156,39,176,0.12);
+    border-radius: 10px; overflow: hidden;
+}
+.progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #f06292, #ab47bc);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+.progress-num {
+    font-size: 0.78rem; color: #9575cd;
+    font-weight: 700; min-width: 42px; text-align: right;
+}
+
+.q-card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(8px);
+    padding: 28px 24px;
+    border: 2px solid rgba(206,147,216,0.25);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(156,39,176,0.06);
+    animation: popIn 0.35s ease;
+}
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.q-number {
+    font-size: 0.75rem; color: #b39ddb;
+    font-weight: 700; letter-spacing: 0.06em; margin-bottom: 8px;
+}
+.q-number::before { content: '🐱 '; }
+
+.q-text {
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
+    font-weight: 700;
+    line-height: 1.6;
+    color: #4a148c;
+    margin-bottom: 22px;
+}
+
+.q-option {
+    display: block; width: 100%;
+    background: rgba(255,255,255,0.6);
+    border: 2px solid rgba(206,147,216,0.2);
+    border-radius: 14px;
+    padding: 13px 18px; margin-bottom: 9px;
+    cursor: pointer; transition: all 0.2s;
+    text-align: left; font-size: 0.9rem;
+    font-family: inherit; color: #5e35b1;
+    line-height: 1.6;
+    font-weight: 500;
+}
+.q-option:hover {
+    background: rgba(206,147,216,0.12);
+    border-color: rgba(171,71,188,0.35);
+    transform: translateX(4px);
+}
+.q-option.selected {
+    background: linear-gradient(135deg, rgba(233,30,99,0.08), rgba(156,39,176,0.08));
+    border-color: #ab47bc;
+    color: #4a148c;
+    box-shadow: 0 2px 10px rgba(156,39,176,0.1);
+}
+.q-option .opt-icon { margin-right: 8px; }
+
+/* Result */
+#result { display: none; flex-direction: column; align-items: center; min-height: 100vh; padding: 30px 16px; }
+#result.active { display: flex; }
+
+.result-box {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(206,147,216,0.25);
+    border-radius: 24px;
+    padding: 32px 28px;
+    width: 100%; max-width: 600px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(156,39,176,0.06);
+    animation: popIn 0.5s ease;
+}
+
+.result-section {
+    background: rgba(255,255,255,0.5);
+    border: 2px solid rgba(206,147,216,0.15);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 14px;
+    width: 100%; max-width: 600px;
+    text-align: left;
+    animation: popIn 0.5s ease;
+}
+.result-section h3 {
+    font-size: 0.78rem; color: #ab47bc;
+    font-weight: 700; letter-spacing: 0.06em;
+    margin-bottom: 8px;
+}
+.result-section h3::before { content: '◆ '; }
+.result-section p {
+    color: #5e35b1; line-height: 1.8;
+    font-size: 0.88rem;
+}
+
+.result-type-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(233,30,99,0.1), rgba(156,39,176,0.1));
+    border: 2px solid rgba(171,71,188,0.2);
+    color: #7b5ea7;
+    padding: 4px 18px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+}
+.result-name {
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 900;
+    color: #4a148c;
+    margin-bottom: 2px;
+}
+.result-section .result-name {
+    font-size: 2rem;
+}
+.result-cat { font-size: 3rem; margin: 6px 0; }
+.result-tags {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    margin: 10px 0 14px;
+}
+.result-tags span {
+    background: rgba(156,39,176,0.06);
+    border: 2px solid rgba(156,39,176,0.1);
+    color: #7b5ea7;
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.result-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+
+/* Chart */
+.chart-wrap { width: 100%; max-width: 600px; margin-top: 14px; }
+.chart-title {
+    font-size: 0.78rem; color: #ab47bc;
+    font-weight: 700; letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    text-align: left;
+}
+.chart-title::before { content: '📊 '; }
+.chart-item {
+    display: flex; align-items: center;
+    gap: 6px; margin-bottom: 4px;
+    animation: popIn 0.4s ease;
+}
+.chart-label {
+    width: 80px; font-size: 0.68rem; color: #7e57c2;
+    text-align: right; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+    flex-shrink: 0; font-weight: 700;
+}
+.chart-bar-bg {
+    flex: 1; height: 10px;
+    background: rgba(206,147,216,0.12);
+    border-radius: 6px; overflow: hidden;
+}
+.chart-bar {
+    height: 100%; border-radius: 6px;
+    width: 0%;
+    background: linear-gradient(90deg, #f06292, #ab47bc);
+    transition: width 1.2s ease;
+}
+.chart-bar.top {
+    background: linear-gradient(90deg, #e91e63, #7b1fa2);
+}
+.chart-val {
+    font-size: 0.68rem; color: #9575cd;
+    min-width: 22px; font-weight: 700;
+}
+
+/* Pixel cat decorations */
+.cat-paw-bg {
+    position: fixed; font-size: 2rem;
+    opacity: 0.04; pointer-events: none; z-index: 0;
+}
+
+@media (max-width: 500px) {
+    .container { padding: 10px; }
+    .q-card { padding: 20px 16px; }
+    .q-option { padding: 11px 14px; font-size: 0.84rem; }
+    .result-box { padding: 24px 16px; }
+    .chart-label { width: 60px; font-size: 0.62rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background cat paws -->
+<div class="cat-paw-bg" style="top:5%;left:3%">🐾</div>
+<div class="cat-paw-bg" style="top:20%;right:5%">🐾</div>
+<div class="cat-paw-bg" style="top:50%;left:2%">🐱</div>
+<div class="cat-paw-bg" style="top:70%;right:3%">🐾</div>
+<div class="cat-paw-bg" style="bottom:10%;left:8%">🐱</div>
+<div class="cat-paw-bg" style="bottom:30%;right:6%">🐾</div>
+
+<div class="container">
+
+<div id="splash">
+    <div class="cat-row">🐱 🐱 🐱</div>
+    <h1>TLTI</h1>
+    <div class="sub">✦ 推理人格测试 · 猫咪版 ✦</div>
+    <div class="desc">
+        🐾 你是冷静拆解真相的福尔摩斯，<br>
+        还是用闲聊让犯人投降的古畑？<br>
+        13 道题，找到属于你的推理灵魂！
+    </div>
+    <div class="badge">
+        <span>🔍 侦探篇</span>
+        <span>🌙 反派篇</span>
+        <span>💀 死者篇</span>
+    </div>
+    <button class="btn" onclick="startTest()">开始测试 🐱</button>
+</div>
+
+<div id="questionArea"></div>
+
+<div id="result">
+    <div class="result-box" id="resultBox"></div>
+    <div class="chart-wrap" id="chartWrap"></div>
+    <div class="result-actions">
+        <button class="btn btn-sm" onclick="restart()">再来一次 🐱</button>
+    </div>
+</div>
+
+</div>
+
+<script>
+const TYPES = [
+    { id: 'holmes', name: '福尔摩斯', nameEn: 'Sherlock Holmes', icon: '🔍',
+        cat: '🐱‍👤', section: '侦探篇',
+        tags: ['逻辑演绎', '观察入微', '冷漠疏离', '小提琴', '可卡因依赖'],
+        desc: '你是推理界的逻辑之神！只要观察袖口的灰尘、烟灰的痕迹、脚印的深浅，你就能还原整个犯罪过程。你享受独自破解难题的快感，没有案子的时候反而会陷入空虚。对别人来说你是情感荒漠，但其实——你的大脑只是把感情都"优化"掉了。',
+        quote: '"排除所有不可能的，剩下的即使再不可思议，那也是真相。"',
+        dims: { logic: 10, intuition: 3, empathy: 2, order: 8, charm: 3 } },
+    { id: 'ranko', name: '二阶堂兰子', nameEn: 'Nikaido Ranko', icon: '👑',
+        cat: '🐱‍💼', section: '侦探篇',
+        tags: ['傲岸不逊', '逻辑至上', '美貌与智慧', '女王范', '天才型'],
+        desc: '你是推理界的女王！美貌与智慧并存，逻辑至上主义——从不容忍任何诡计逃脱惩罚。你用"直感式归纳型推理"先假设再验证，推理过程快如闪电。虽然表面傲慢，但内心不过是一个渴望被认可的小女孩罢了——只是你永远不承认这一点。',
+        quote: '"时尚的打扮不过是测试他人反应的试剂。美貌与智慧并重的人，不需要向任何人解释。"',
+        dims: { logic: 9, intuition: 7, empathy: 3, order: 6, charm: 9 } },
+    { id: 'furuhata', name: '古畑任三郎', nameEn: 'Furuhata Ninzaburo', icon: '🚲',
+        cat: '🐱‍🎩', section: '侦探篇',
+        tags: ['绅士风度', '闲聊审讯', '甜食控', '不怒自威', '同情犯人'],
+        desc: '你是推理界的绅士！永远穿着黑色长大衣、骑着自行车出现在案发现场。你从不用手枪手铐——用敬语和闲聊就能让犯人自愿认罪。你对甜食有执念，对犯人有悲悯。你理解"每个人都有犯罪的可能"，但你温柔的外表下，也有绝不退让的底线。',
+        quote: '"请等一下——你刚才那句话，有一个小小的矛盾呢。"',
+        dims: { logic: 7, intuition: 8, empathy: 10, order: 7, charm: 9 } },
+    { id: 'poirot', name: '波罗', nameEn: 'Hercule Poirot', icon: '🎩',
+        cat: '🐱‍⭐', section: '侦探篇',
+        tags: ['秩序狂', '对称控', '灰色脑细胞', '完美主义', '不爱运动'],
+        desc: '你是推理界的秩序之王！不需要亲临现场——只要坐在安乐椅上，用"小小的灰色脑细胞"就能解决一切。你对不对称、不整洁、逻辑漏洞有强迫级别的敏感。你的胡子每天欣赏三次，连账户余额都要对仗工整。对你来说，整洁就是正义，秩序就是真理。',
+        quote: '"难道不是吗？走遍整个伦敦，我还没见过谁的胡子能和我的相比。"',
+        dims: { logic: 10, intuition: 3, empathy: 5, order: 10, charm: 6 } },
+    { id: 'victorique', name: '维多利加', nameEn: 'Victorique', icon: '📚',
+        cat: '🐱‍🧠', section: '侦探篇',
+        tags: ['毒舌傲娇', '智慧泉水', '哥特萝莉', '怕疼怕无聊', '灰狼后裔'],
+        desc: '你是推理界的智慧宝库！坐在图书馆塔顶的植物园里，用"智慧之泉"重组"混沌碎片"。大多数时候你早就知道真相，只是"嫌麻烦"不愿开口。你毒舌、怕疼、怕无聊、对被夸奖口是心非——但内心其实很珍视那个愿意听你解释一切的人。',
+        quote: '"我的五感高度警戒，从世界收集混沌碎片。智慧之泉因为无聊而玩耍着它们，再将其重组——但大多数时候嫌麻烦。"',
+        dims: { logic: 8, intuition: 10, empathy: 2, order: 3, charm: 4 } },
+    { id: 'mimika', name: '御陵御影', nameEn: 'Mimika', icon: '🪭',
+        cat: '🐱‍🔮', section: '侦探篇',
+        tags: ['独眼翡翠', '古装折扇', '冷静自信', '傲娇', '天才见习侦探'],
+        desc: '你是推理界的傲娇天才！身着古装、手持折扇、翡翠左眼能看穿一切真相。你冷静、自信，对不合理之事反应锐利。你从不以貌取人——但被真诚的笑容破防的概率约等于太阳从西边升起。你能够看透事件的真相，却对人心的深度存在盲区。',
+        quote: '"我的左眼，能看透一切真相。但你内心的想法——我选择不去看。"',
+        dims: { logic: 8, intuition: 9, empathy: 3, order: 6, charm: 5 } },
+    { id: 'moriarty', name: '莫里亚蒂', nameEn: 'Professor Moriarty', icon: '🕸️',
+        cat: '🐱‍👿', section: '反派篇',
+        tags: ['犯罪拿破仑', '数学天才', '蜘蛛网中心', '冷酷策划', '天才恶魔'],
+        desc: '你是推理界的黑暗帝王！你像蜘蛛一样坐在犯罪网络的中心，从不亲自出手，只在幕后策划一切。你的头脑是"人类第一流的头脑"，却用在了犯罪上。你追求完美，但致命缺陷是——你无法预料人类行为中的"非理性变量"，比如有人宁可同归于尽也不妥协。',
+        quote: '"我不仅是一个罪犯，我还是一个犯罪艺术家。区别在于——艺术家创作美，我创作必然。"',
+        dims: { logic: 10, intuition: 6, empathy: 1, order: 9, charm: 8 } },
+    { id: 'kuro', name: '小黑', nameEn: 'Kuro', icon: '⬛',
+        cat: '🐱‍💨', section: '反派篇',
+        tags: ['无脸剪影', '黑色代表', '犯人集合体', '变性专业户', '全裸出演'],
+        desc: '你是推理界的万能背锅侠！没有面孔、没有姓名、没有年龄、没有性别——你是一切推理故事中最勤劳的配角演员。你需要出现在任何需要凶手的场景，一旦真相揭露就"变回"真人。你是纯粹的邪恶原型，每个人内心都有一片属于你的黑暗。',
+        quote: '"（沉默。我没有脸，所以你也看不见我此刻的表情。）"',
+        dims: { logic: 3, intuition: 5, empathy: 1, order: 1, charm: 2 } },
+    { id: 'killer', name: '凶手', nameEn: 'The Murderer', icon: '🔪',
+        cat: '🐱‍🎭', section: '反派篇',
+        tags: ['无名氏', '第一发现者', '反转之王', '话太多', '动机怪'],
+        desc: '每一个推理故事里那个从善良邻居瞬间变成冷血杀手的普通人——就是你。你永远以友善面孔登场，在第三集反转，在侦探问"为什么"时滔滔不绝地自曝。你不是怪物，你是被命运推到这个位置的普通人。这恰恰才是最令人不寒而栗的地方。',
+        quote: '"我这么做是有苦衷的……（省略三万字背景故事）"',
+        dims: { logic: 4, intuition: 4, empathy: 5, order: 2, charm: 5 } },
+    { id: 'victimA', name: '死者A', nameEn: 'Victim A', icon: '💀',
+        cat: '🐱‍💥', section: '死者篇',
+        tags: ['第一发现者', '好奇心爆棚', '倒霉蛋', '剧情触发器', '作死小能手'],
+        desc: '你是推理界的头号倒霉蛋！永远第一个发现尸体——然后尖叫完自己就成了第二具尸体。深夜独自去地下室、打开神秘信封、走进废弃建筑……你在错误的时间出现在错误的地点。你用生命诠释了什么叫"好奇心害死猫"——而且是每次都被害死。',
+        quote: '"啊——！！！（这是你在推理故事中唯一的台词）"',
+        dims: { logic: 2, intuition: 3, empathy: 6, order: 1, charm: 8 } },
+    { id: 'victimB', name: '死者B', nameEn: 'Victim B', icon: '✉️',
+        cat: '🐱‍📝', section: '死者篇',
+        tags: ['死前留言执念', '字迹潦草', '浪漫主义', '遗言偏执狂', '墨水浪费者'],
+        desc: '你是推理界的遗言艺术家！临死前一定要写死前留言——虽然90%的情况下都写了等于白写。你的字迹潦草到侦探需要花三集来破译，留言内容永远是"凶手是——"然后戛然而止。你越想在最后留下什么，就越容易失去一切——这就是你的悲剧浪漫。',
+        quote: '"凶 手 是 ……（此处因失血过多无法辨认）"',
+        dims: { logic: 3, intuition: 5, empathy: 7, order: 2, charm: 4 } },
+    { id: 'victimC', name: '死者C', nameEn: 'Victim C', icon: '💬',
+        cat: '🐱‍🗣️', section: '死者篇',
+        tags: ['社交达人', '八卦中心', '多管闲事', '第一个被灭口的人', '嘴太快'],
+        desc: '你是推理界的社交情报中心！知道太多秘密，嘴又太碎——"分享让快乐加倍"是你的座右铭，"分享让死亡也加倍"是你的墓志铭。你因为"我有个秘密要告诉你"这句话成为凶手的首要目标。你是朋友圈最受欢迎的人——直到你被从朋友圈里永久移除。',
+        quote: '"你知道吗，我听说——（然后就没有然后了）"',
+        dims: { logic: 2, intuition: 4, empathy: 9, order: 1, charm: 10 } },
+    { id: 'victimD', name: '死者D', nameEn: 'Victim D', icon: '🏛️',
+        cat: '🐱‍💰', section: '死者篇',
+        tags: ['成功人士', '控制狂', '遗嘱狂', '遗产战争导火索', '家族矛盾'],
+        desc: '你是推理界的遗产核弹！生前最喜欢做的事就是在家族聚餐时宣布"我要修改遗嘱"。你的遗嘱多到可以出书，家族关系图比跨国公司组织架构还复杂。你想死后继续控制所有人的命运——但往往不等你立完最后一份遗嘱，命运就先控制了你。',
+        quote: '"我决定修改我的遗嘱——（剧终）"',
+        dims: { logic: 5, intuition: 2, empathy: 2, order: 9, charm: 3 } },
+];
+
+const QUESTIONS = [
+    {
+        q: '你更习惯用哪种方式思考问题？',
+        a: [
+            { text: '🐱 像拼图一样，把碎片一片片拼成完整画面', t: ['holmes','poirot','moriarty'] },
+            { text: '🌸 先有直觉结论，再找证据验证', t: ['ranko','victorique','mimika'] },
+            { text: '☕ 和人聊着聊着就想通了', t: ['furuhata','victimC','killer'] },
+            { text: '🌙 等灵感自己冒出来', t: ['kuro','victimA','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你觉得自己更像哪种动物？',
+        a: [
+            { text: '🐈‍⬛ 黑猫——神秘、独立、独来独往', t: ['holmes','moriarty','kuro'] },
+            { text: '🦚 孔雀——华丽、自信、引人注目', t: ['ranko','victimC','poirot'] },
+            { text: '🐕 柴犬——温暖、忠诚、人见人爱', t: ['furuhata','victimA','killer'] },
+            { text: '🦉 猫头鹰——安静、智慧、喜欢独处', t: ['victorique','mimika','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '朋友眼中的你是什么样的？',
+        a: [
+            { text: '🔮 冷静理智，遇到问题都来找你分析', t: ['holmes','poirot','moriarty'] },
+            { text: '👑 气场强大，人群中天然的焦点', t: ['ranko','mimika','victimC'] },
+            { text: '😊 温和友善，总是笑着听别人说话', t: ['furuhata','victimA','killer'] },
+            { text: '🤫 神神秘秘，没人真正了解你', t: ['victorique','kuro','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你更喜欢哪种场景？',
+        a: [
+            { text: '🏛️ 安静的书房或图书馆', t: ['holmes','victorique','poirot'] },
+            { text: '🌆 繁华都市的顶层公寓', t: ['ranko','moriarty','victimD'] },
+            { text: '☕ 街角的咖啡馆或甜品店', t: ['furuhata','victimC','victimA'] },
+            { text: '🌑 黑暗中的某个角落', t: ['kuro','killer','mimika','victimB'] },
+        ]
+    },
+    {
+        q: '遇到困难时你的第一反应是？',
+        a: [
+            { text: '📋 列清单、分析原因、制定方案', t: ['holmes','poirot','moriarty'] },
+            { text: '⚡ 相信自己的判断，立刻行动', t: ['ranko','mimika','victimA'] },
+            { text: '📞 打电话找朋友商量', t: ['furuhata','victimC','killer'] },
+            { text: '🛌 躺平再说，反正总会解决的', t: ['victorique','kuro','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你心里隐藏最深的欲望是？',
+        a: [
+            { text: '🏆 被人认可——"你真的很厉害"', t: ['holmes','ranko','poirot'] },
+            { text: '🕊️ 真正的自由——不被任何人束缚', t: ['moriarty','victorique','kuro'] },
+            { text: '❤️ 被理解——不只是被喜欢', t: ['furuhata','killer','victimC'] },
+            { text: '👁️ 存在感——不想被这个世界遗忘', t: ['mimika','victimA','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你身体里住着几个"自己"？',
+        a: [
+            { text: '🎭 一个——内外一致，表里如一', t: ['holmes','furuhata','victimA'] },
+            { text: '👥 两个——对外一个样，对自己另一个样', t: ['ranko','victorique','mimika'] },
+            { text: '🌀 无数个——在不同人面前是不同样子', t: ['moriarty','killer','victimC'] },
+            { text: '⬛ 没有固定形状——我即是我，也是任何人', t: ['kuro','poirot','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你更害怕什么？',
+        a: [
+            { text: '😶 无聊——没有挑战的生活比死还难受', t: ['holmes','ranko','victorique'] },
+            { text: '😰 失控——事情不在计划中的感觉', t: ['poirot','moriarty','victimD'] },
+            { text: '😢 被误解——比被讨厌更可怕', t: ['furuhata','killer','victimC'] },
+            { text: '😱 被遗忘——消失得毫无痕迹', t: ['mimika','kuro','victimA','victimB'] },
+        ]
+    },
+    {
+        q: '你心中"正义"是什么颜色的？',
+        a: [
+            { text: '⬜ 纯白——非黑即白，真相不容妥协', t: ['holmes','poirot','ranko'] },
+            { text: '🌫️ 灰色——正义和邪恶本就是一体的', t: ['moriarty','kuro','killer'] },
+            { text: '🌈 彩色——正义应该是温暖的、包容的', t: ['furuhata','victimC','victimA'] },
+            { text: '🔮 透明——正义不需要定义，做对的事就好', t: ['victorique','mimika','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你的充电方式是什么？',
+        a: [
+            { text: '📖 一个人看书、听音乐、思考', t: ['holmes','victorique','poirot'] },
+            { text: '🎉 和朋友们一起热闹地玩', t: ['ranko','victimC','victimA'] },
+            { text: '🚶 一个人散步、喝咖啡、发呆', t: ['furuhata','mimika','killer'] },
+            { text: '😴 谁也别理我，我需要躺着恢复', t: ['moriarty','kuro','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '你觉得自己最大的优点是什么？',
+        a: [
+            { text: '🧠 头脑好使——逻辑强、分析快、看得透', t: ['holmes','poirot','moriarty'] },
+            { text: '💎 气质出众——到哪里都是焦点', t: ['ranko','mimika','victimC'] },
+            { text: '🤝 善解人意——能体谅别人的心情', t: ['furuhata','victimA','killer'] },
+            { text: '🎭 捉摸不透——没人能猜到你在想什么', t: ['victorique','kuro','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '如果给你一个超能力，你想要？',
+        a: [
+            { text: '🔍 看穿一切谎言和伪装', t: ['holmes','ranko','poirot'] },
+            { text: '🧠 读取别人的想法和记忆', t: ['furuhata','moriarty','killer'] },
+            { text: '🌀 预见未来的各种可能性', t: ['victorique','mimika','victimA'] },
+            { text: '👻 隐身——在暗中观察一切', t: ['kuro','victimC','victimB','victimD'] },
+        ]
+    },
+    {
+        q: '最后——你觉得自己在推理故事里会是什么角色？',
+        a: [
+            { text: '🕵️ 侦探——真相只能由我来揭晓', t: ['holmes','ranko','furuhata','poirot','victorique','mimika'] },
+            { text: '🎪 反派——没有我，故事该多无聊', t: ['moriarty','kuro','killer'] },
+            { text: '💀 死者——真不好意思，我又死了', t: ['victimA','victimB','victimC','victimD'] },
+        ]
+    },
+];
+
+let currentQ = 0;
+let answered = [];
+
+function startTest() {
+    document.getElementById('splash').style.display = 'none';
+    currentQ = 0;
+    answered = [];
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const area = document.getElementById('questionArea');
+    const q = QUESTIONS[currentQ];
+    const total = QUESTIONS.length;
+    const pct = (currentQ / total * 100);
+
+    let opts = q.a.map((a, i) => {
+        const sel = answered[currentQ] === i ? ' selected' : '';
+        return `<button class="q-option${sel}" onclick="selectAnswer(${i})">${a.text}</button>`;
+    }).join('');
+
+    area.innerHTML = `
+    <div class="q-screen active">
+        <div class="progress">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div class="progress-num">${currentQ+1}/${total}</div>
+        </div>
+        <div class="q-card">
+            <div class="q-number">第 ${currentQ+1} 题</div>
+            <div class="q-text">${q.q}</div>
+            ${opts}
+        </div>
+    </div>`;
+    area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function selectAnswer(idx) {
+    answered[currentQ] = idx;
+    renderQuestion();
+    setTimeout(() => {
+        if (currentQ < QUESTIONS.length - 1) {
+            currentQ++;
+            renderQuestion();
+        } else {
+            calculateResult();
+        }
+    }, 300);
+}
+
+function calculateResult() {
+    const scores = {};
+    TYPES.forEach(t => scores[t.id] = 0);
+
+    answered.forEach((ansIdx, qi) => {
+        if (ansIdx === undefined) return;
+        const targets = QUESTIONS[qi].a[ansIdx].t;
+        targets.forEach(tid => { if (scores[tid] !== undefined) scores[tid]++; });
+    });
+
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    const topId = sorted[0][0];
+    const result = TYPES.find(t => t.id === topId);
+
+    document.getElementById('questionArea').style.display = 'none';
+    const resultEl = document.getElementById('result');
+    resultEl.classList.add('active');
+
+    const sections = ['侦探篇','反派篇','死者篇'];
+    const sectionEmojis = {'侦探篇':'🔍','反派篇':'🌙','死者篇':'💀'};
+    const secIdx = sections.indexOf(result.section);
+    const catEmojis = ['🐱‍👤','🐱‍👿','🐱‍💀'];
+
+    const box = document.getElementById('resultBox');
+    box.innerHTML = `
+        <div class="result-type-badge">${sectionEmojis[result.section]} ${result.section}</div>
+        <div class="result-cat">${result.cat}</div>
+        <div class="result-name">${result.name}</div>
+        <div style="color:#7e57c2;font-size:0.85rem;font-weight:700;margin-bottom:6px">${result.nameEn}</div>
+        <div class="result-tags">${result.tags.map(t => `<span>${t}</span>`).join('')}</div>
+    `;
+
+    const chartEl = document.getElementById('chartWrap');
+    const maxScore = sorted[0][1];
+    let chartHtml = '<div class="chart-title">全部角色得分</div>';
+    sorted.forEach(([id, score], idx) => {
+        const t = TYPES.find(t => t.id === id);
+        const pct = maxScore > 0 ? (score / maxScore * 100) : 0;
+        const isTop = id === topId;
+        chartHtml += `
+        <div class="chart-item" style="animation-delay:${idx*0.05}s">
+            <div class="chart-label" style="${isTop?'color:#6a1b9a':''}">${t.cat} ${t.name}</div>
+            <div class="chart-bar-bg"><div class="chart-bar${isTop?' top':''}" style="width:${pct}%"></div></div>
+            <div class="chart-val" style="${isTop?'color:#6a1b9a':''}">${score}</div>
+        </div>`;
+    });
+    chartEl.innerHTML = chartHtml;
+
+    setTimeout(() => {
+        // Add description section after chart
+        const descSection = document.createElement('div');
+        descSection.className = 'result-section';
+        descSection.style.animation = 'popIn 0.5s ease';
+        descSection.innerHTML = `
+            <h3>人格特质</h3>
+            <p>${result.desc}</p>
+        `;
+        chartEl.after(descSection);
+
+        const quoteSection = document.createElement('div');
+        quoteSection.className = 'result-section';
+        quoteSection.style.animation = 'popIn 0.5s ease';
+        quoteSection.innerHTML = `
+            <h3>经典名言</h3>
+            <p style="font-style:italic;color:#7b5ea7">${result.quote}</p>
+        `;
+        descSection.after(quoteSection);
+
+        resultEl.scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+}
+
+function restart() {
+    document.getElementById('result').classList.remove('active');
+    document.getElementById('questionArea').style.display = '';
+    document.getElementById('splash').style.display = 'flex';
+    // Remove any result sections that were dynamically added
+    document.querySelectorAll('.result-section').forEach(el => el.remove());
+    currentQ = 0;
+    answered = [];
+}
+</script>
+</body>
+</html>
